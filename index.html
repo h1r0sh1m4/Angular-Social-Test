@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <script type="text/javascript"  src= "js/angular.min.js"></script>
+    <script type="text/javascript"  src= "js/angular-route.min.js"></script>
+    <script type="text/javascript" src="js/app.js"></script>
+
+  <!--this style should make comment box easier to see on phone (width defined)-->
+  <style>
+    .fb-comments, .fb-comments iframe[style], .fb-like-box, .fb-like-box iframe[style] {width: 100% !important;}
+    .fb-comments span, .fb-comments iframe span[style], .fb-like-box span, .fb-like-box iframe span[style] {width: 100% !important;}
+  </style>
+
+  </head>
+  
+  <body ng-app="app">
+
+  <!--facebook-->
+
+  <div id="fb-root"></div>
+  <script>
+      window.fbAsyncInit = function() {
+      FB.init({
+        //this is where our app id must go
+        //Note to myself:
+          //the following number was created from my test app called "Davidow Project test" which is currently not live
+          //login to facebook, go to https://developers.facebook.com/apps/ to see test app
+        appId      : '435225213325487',       
+        status     : true,        
+        xfbml      : true,
+        version    : 'v2.1'
+      });
+    };
+      (function(d, s, id){
+        var js, fjs = d.getElementsByTagName(s)[0];
+        if (d.getElementById(id)) {
+          return;
+        }
+        js = d.createElement(s);
+        js.id = id;
+        
+        js.src = "//connect.facebook.net/en_US/sdk.js";
+        js.src = "//connect.facebook.net/en_US/sdk/debug.js";
+        
+          fjs.parentNode.insertBefore(js, fjs);
+        }
+         (document, 'script', 'facebook-jssdk'));
+    </script>
+
+ 
+  <a href="#/">home</a>
+  <a href="second.html">second</a>
+
+  angular.module('angulike')
+  .directive('fbLike', [
+      '$window', '$rootScope', function ($window, $rootScope) {
+          return {
+              restrict: 'A',
+              scope: {
+                  fbLike: '=?'
+              },
+              link: function (scope, element, attrs) {
+                  if (!$window.FB) {
+                      // Load Facebook SDK if not already loaded
+                      $.getScript('//connect.facebook.net/en_US/sdk.js', function () {
+                          $window.FB.init({
+                              appId: $rootScope.facebookAppId,
+                              xfbml: true,
+                              version: 'v2.0'
+                          });
+                          renderLikeButton();
+                      });
+                  } else {
+                      renderLikeButton();
+                  }
+ 
+                  var watchAdded = false;
+                  function renderLikeButton() {
+                      if (!!attrs.fbLike && !scope.fbLike && !watchAdded) {
+                          // wait for data if it hasn't loaded yet
+                          var watchAdded = true;
+                          var unbindWatch = scope.$watch('fbLike', function (newValue, oldValue) {
+                              if (newValue) {
+                                  renderLikeButton();
+                                   
+                                  // only need to run once
+                                  unbindWatch();
+                              }
+                               
+                          });
+                          return;
+                      } else {
+                          element.html('<div class="fb-like"' + (!!scope.fbLike ? ' data-href="' + scope.fbLike + '"' : '') + ' data-layout="button_count" data-action="like" data-show-faces="true" data-share="true"></div>');
+                          $window.FB.XFBML.parse(element.parent()[0]);
+                      }
+                  }
+              }
+          };
+      }
+  ]);
+
+  
+  <div ng-view>
+  </div>
+
+
+
+<!--FACEBOOK CONTENT-->
+<!--used to be right here, and worked fine and showed up on both 'main' and 'second' html pages-->
+<script type="text/javascript" src="http://platform.twitter.com/widgets.js"></script>
+
+  </body>
+</html>
